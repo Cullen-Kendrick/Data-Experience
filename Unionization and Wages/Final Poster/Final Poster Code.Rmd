@@ -1,0 +1,169 @@
+---
+main_topsize: 0.05 # percent of the poster taken up by header bar
+main_bottomsize: 0.05 # percent of the poster taken up by bottom bar
+poster_height: "48in" # Height in inches of the poster.
+poster_width: "36in" # Width in inches of the poster.
+primary_colour: "#652978" # look for hex color pickers online to find other color codes
+title: '**How Unions Effect the Rest of Us**'
+author:
+  - name: '**Cullen Kendrick**'
+    affil: 1
+    main: true
+    email: ckendrick@umass.edu
+affiliation:
+  - num: 1
+    address: Department of Economics, University of Massachusetts Amherst
+main_findings:
+  - "You might think Unions hurt you, but you're wrong!"
+reference_textsize: "30px"
+output: 
+  posterdown::posterdown_betterport:
+    self_contained: false
+    pandoc_args: --mathjax
+    number_sections: false
+---
+
+```{r, include=FALSE}
+# setting the default visibility of code chunks to FALSE, and suppressing warnings and the like
+knitr::opts_chunk$set(echo = FALSE,
+                      warning = FALSE,
+                      tidy = FALSE,
+                      message = FALSE,
+                      fig.align = 'center',
+                      out.width = "100%")
+options(knitr.table.format = "html") 
+# load any required packages here
+library(tidyverse)
+library(knitr)
+library(broom)
+library(dplyr)
+# this is also a good place to load your data sets, so that they are available later on
+```
+
+# Introduction
+
+Unions have a long and storied history within the realm of American labor. The discussion continues today with mega-corporations continually trying to stop unionization by any means necessary. Because of this there is a lot of information, and not many people know what is true and what can be trusted. So this an attempt to clear some things in regards to unions.   
+
+My hypothesis is that as wages for union workers increase, the corresponding wages for non-union workers will decrease. I believe this because when the cost of inputs increase in some part of an industry the firms would cut costs to maintain their profits. 
+
+
+# Data
+
+The data used in this research comes from The Union Membership and Coverage database, found at unionstats.com. This database uses the current population survey (CPS) as its source for the data collected. The creators of the database, Barry Hirshe at Georgia State University and David Macpherson at Trinity University, update the database annually. 
+
+I decided that looking at multiple industries to view effects would be better than just taking one. From the database I chose to look at the construction industry and manufacturing industry. From these two industries I decided to take two different sets of data for each, the membership density and the union and nonunion wages of the industry. This provided me with four different sets of data. 
+	
+In order to clean up the data and make it easier to work with, I did some simple cleaning procedures by just removing some clutter. There were multiple rows that had no data with the data frame. I renamed the variables to make working with the data easier. In addition I created a variable for the rate of change for union and nonunion wages, Unroc and Nonroc.
+
+And the final way I affected the data was by merging two data frames together. This allowed me to create two sets of data, one for construction and one for manufacturing.  
+
+# Methods
+
+To investigate this I will run a regression and model of the rate of change of union wages and nonunion wages. The reason we need to look at rate of change is because if we just run models on the wages, then it won't actually tell us anything useful, just that as union wages increase so do nonunion wages. This controls for time. 
+
+And to take this research further I will see if the rate of union membership has an effect on the differences between union and nonunion wages. Of course with these models, we will continue to use the rate of change for the same reasons as stated above. These two models are attempting to investigate the same relationship, but from two different points of view. In all regressions that I ran, I used the equation below, just augmenting in order to fit the needs of the regression.
+$$
+y_i = \beta_0 + \beta_1 x_i + \epsilon_i
+$$
+
+# Results
+
+## Union and Nonunion Rate of Change 
+
+```{r, fig.cap='Here is the Construction Industry regression table and model', out.width="80%"}
+total_con3 <- mutate(total_con, Unroc= 100* (UnWage - lag(UnWage))/lag(UnWage), Nonroc= 100*(NonWage - lag(NonWage))/lag(NonWage))
+total_con3 <- total_con3[-c (1),]
+
+fit_con <- lm(Nonroc ~ Unroc, data=total_con3)
+tidy(fit_con)%>%
+  kable()
+total_con1 <- augment(fit_con, data=total_con3)
+ggplot(total_con1)+
+  geom_point(aes(Unroc, Nonroc))+
+  geom_line(aes(Unroc, .fitted))+
+  ggtitle("Effect of Union Wage RoC on Nonunion Wage RoC")+ 
+  xlab("Union Wage Rate of Change")+
+  ylab("Nonunion Wage Rate of Change")
+```
+```{r fig.cap='Here is the Manufacturing Industry regression table and model', out.width="80%"}
+total_manf1 <- mutate(total_manf, Unroc= 100* (UnWage - lag(UnWage))/lag(UnWage), Nonroc= 100*(NonWage - lag(NonWage))/lag(NonWage))
+total_manf1 <- total_manf1[-c (1),]
+
+fit_manf <- lm(Nonroc ~ Unroc, data=total_manf1)
+tidy(fit_manf)%>%
+  kable()
+total_manf2 <- augment(fit_manf, data=total_manf1)
+ggplot(total_manf2)+
+  geom_point(aes(Unroc, Nonroc))+
+  geom_line(aes(Unroc, .fitted))+
+  ggtitle("Effect of Union Wage RoC on Nonunion Wage RoC")+ 
+  xlab("Union Wage Rate of Change")+
+  ylab("Nonunion Wage Rate of Change")
+```
+
+## Union Membership and its effect on Wages 
+
+### Construction Industry
+```{r fig.cap='Here is the effect of Union Membership on Union Wages rate of change within the Construction Industry', out.width="80%"}
+fit_con2 <- lm(Unroc ~ PerMem, data=total_con3)
+tidy(fit_con2) %>%
+  kable()
+total_con4 <- augment(fit_con2, data=total_con3)
+ggplot(total_con4)+
+  geom_point(aes(PerMem, Unroc))+
+  geom_line(aes(PerMem, .fitted))+
+  ggtitle("Effect of Union Membership on Union Wage RoC")+ 
+  xlab("Union Membership Percentage")+
+  ylab("Union Wage Rate of Change")
+```
+
+```{r fig.cap='Here is the effect of Union Membership on Nonnion Wages rate of change within the Construction Industry', out.width="80%"}
+fit_con3 <- lm(Nonroc ~ PerMem, data=total_con3)
+tidy(fit_con3) %>%
+  kable()
+total_con5 <- augment(fit_con3, data=total_con3)
+ggplot(total_con5)+
+  geom_point(aes(PerMem, Nonroc))+
+  geom_line(aes(PerMem, .fitted))+
+  ggtitle("Effect of Union Membership on Union Wage RoC")+ 
+  xlab("Union Membership Percentage")+
+  ylab("Nonunion Wage Rate of Change")
+```
+
+### Manufacturing Industry
+
+```{r fig.cap='Here is the effect of Union Membership on Union Wages rate of change within the Manufacturing Industry', out.width="80%"}
+fit_manf2 <- lm(Unroc ~ PerMem, data=total_manf1)
+tidy(fit_manf2) %>%
+  kable()
+total_manf3 <- augment(fit_manf2, data=total_manf1)
+ggplot(total_manf3)+
+  geom_point(aes(PerMem, Unroc))+
+  geom_line(aes(PerMem, .fitted))+ 
+  ggtitle("Effect of Union Membership on Union Wage RoC")+ 
+  xlab("Union Membership Percentage")+
+  ylab("Union Wage Rate of Change")
+```
+
+```{r fig.cap='Here is the effect of Nonunion Membership on Nonunion Wages rate of change within the Construction Industry', out.width="80%"}
+fit_manf3 <- lm(Nonroc ~ PerMem, data=total_manf1)
+tidy(fit_manf3) %>%
+  kable()
+total_manf4 <- augment(fit_manf3, data=total_manf1)
+ggplot(total_manf4)+
+  geom_point(aes(PerMem, Nonroc))+
+  geom_line(aes(PerMem, .fitted))+
+  ggtitle("Effect of Union Membership on Nonunion Wage RoC")+ 
+  xlab("Union Membership Percentage")+
+  ylab("Nonunion Wage Rate of Change")
+```
+
+# Results
+
+In order to consider the information provided, we will address the models in pairs comparing the construction industry and the manufacturing industry. The first relation to address is if the rate of change in union wages effects the rate of change in nonunion wages. This model for both construction and manufacturing are very statistically significant. For both the t-statistic and p-value communicate this to us. the general understanding from this model is that when the rate of change for union wages increases by 1%, the nonunion wages increase by beta_1. 
+
+The second relation we will address is the Union Membership between the same two industries. Again for this model both industries have very statistically significant results. For both the p-values are below .05 and the t-statistics are above 2. And this model says that for every 1% increase in union membership union wages increase by .26%.
+
+The last and most interesting relation we will address is whether increases in the union membership of an industry also increases the rate of change in wages in nonunion workers. In this case both models are very similar. In fact the p-value and t-statistic are pretty much the same. And the relation between union membership and the rate of change for Nonunion wages is shockingly close as well. Both models suggest that for every percent increase in union membership, the nonunion rate of change will also increase by .19%. 
+
+I believe that this is good starting point. The models are a bit elementary and I have multiple ideas for how to continue this study. If I were to do further research, I would attempt to look at the coverage of collective bargaining and how that might interact with the difference between union and nonunion wages. In addition to that, I might also attempt to see if this relation holds up globally. The end point of it all is that is seems as though my hypothesis was incorrect and that as unions increase in size and as union wages increase, the nonunion workers also increase. Unions seems beneficial for all. 

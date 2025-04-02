@@ -1,4 +1,11 @@
 # Data-Experience
-I am Cullen Kendrick and I am recent graduate of the University of Mary Washington. I graduated with a degree in Economics with departmental honors, and a minor in data science. 
+I am Cullen Kendrick and I am recent graduate of the University of Mary Washington. I graduated with a degree in Economics and Philosophy (with departmental honors), and a minor in data science. 
 
-The files in this respository are an overview of my experience with data in the past. Each folder will contain a description of what the data was, how I worked on it, and the context in which it was created. Additonally, the files will contain the code used in the project and any visualization that was created for the project.
+This repository serves as a portfolio of my data analysis experience. Each project folder contains: 
+- A detailed description of the dataset and its context 
+- The analytical methodology and approach used
+- Complete source code for analysis and modeling 
+- Data visualizations and key findings
+
+My academic background combines quantitative economic analysis with philosophical critical thinking, allowing me to approach data problems with both technical precision and conceptual depth. 
+Feel free to explore my projects and reach out with any questions or opportunities for collaboration.
